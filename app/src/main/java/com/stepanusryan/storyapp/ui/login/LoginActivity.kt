@@ -6,7 +6,7 @@ import android.os.Bundle
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.stepanusryan.storyapp.databinding.ActivityLoginBinding
 import com.stepanusryan.storyapp.ui.home.HomeActivity
-import com.stepanusryan.storyapp.ui.login.register.RegisterActivity
+import com.stepanusryan.storyapp.ui.register.RegisterActivity
 
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,10 +1,12 @@
 package com.stepanusryan.storyapp.data.source
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.stepanusryan.storyapp.data.source.remote.RemoteDataSource
+import com.stepanusryan.storyapp.model.ListStoryItem
 import com.stepanusryan.storyapp.model.ResponseGetStory
-import java.util.ArrayList
+import kotlin.collections.ArrayList
 
 class AppRepository private constructor(private val remoteDataSource: RemoteDataSource):AppDataSource{
     companion object{
@@ -15,22 +17,28 @@ class AppRepository private constructor(private val remoteDataSource: RemoteData
                 instance ?: AppRepository(remoteDataSource).apply { instance = this }
             }
     }
-//    override fun getStories(): LiveData<List<ResponseGetStory>> {
-//        val dataStory = MutableLiveData<List<ResponseGetStory>>()
-//        remoteDataSource.getStories(object : RemoteDataSource.LoadStories{
-//            override fun storyReceived(story: List<ResponseGetStory>) {
-//                val storyList = ArrayList<ResponseGetStory>()
-//                for (response in story){
-//                    val stories = ResponseGetStory(
-//                        response.listStory,
-//                        response.error,
-//                        response.message
-//                    )
-////                    storyList.addAll(stories.l)
-//                }
-//            }
-//
-//        })
-//        return  dataStory
-//    }
+
+    override fun getStories(): LiveData<List<ListStoryItem>> {
+        val dataStory = MutableLiveData<List<ListStoryItem>>()
+        remoteDataSource.getStories(object : RemoteDataSource.LoadStories{
+            override fun storyReceived(story: ResponseGetStory) {
+                val storyList = ArrayList<ListStoryItem>()
+                Log.d("response","$story")
+                for (response in story.listStory as ArrayList<ListStoryItem>){
+                    val storys = ListStoryItem(
+                        response.id,
+                        response.name,
+                        response.description,
+                        response.photoUrl,
+                        response.createdAt,
+                        response.lat,
+                        response.lon
+                    )
+                    storyList.add(storys)
+                }
+                dataStory.postValue(storyList)
+            }
+        })
+        return dataStory
+    }
 }

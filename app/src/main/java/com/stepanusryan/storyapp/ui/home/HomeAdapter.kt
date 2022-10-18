@@ -10,11 +10,11 @@ import com.stepanusryan.storyapp.model.ListStoryItem
 class HomeAdapter : RecyclerView.Adapter<HomeAdapter.HomeViewHolder>() {
     private var listStory = ArrayList<ListStoryItem>()
     fun setStory(story:List<ListStoryItem>?){
-//        if (story == null) return
-//        this.listStory.clear()
-//        this.listStory.addAll(story)
-        this.listStory = story as ArrayList<ListStoryItem>
-        notifyDataSetChanged()
+        if (story == null) return
+        this.listStory.clear()
+        this.listStory.addAll(story)
+//        this.listStory = story as ArrayList<ListStoryItem>
+//        notifyDataSetChanged()
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HomeViewHolder {
         val itemListAdapterStoryBinding = LayoutStoryBinding.inflate(LayoutInflater.from(parent.context),parent,false)

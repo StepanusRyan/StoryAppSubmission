@@ -1,14 +1,18 @@
 package com.stepanusryan.storyapp.api
 
+import com.stepanusryan.storyapp.model.PostResponseRegister
 import com.stepanusryan.storyapp.model.ResponseGetStory
 import retrofit2.Call
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
+import retrofit2.http.*
 
 interface API {
+    @FormUrlEncoded
     @POST("register")
-    fun postRegister()
+    fun postRegister(
+        @Field("name") name:String,
+        @Field("email") email:String,
+        @Field("password") password:String
+    ):Call<PostResponseRegister>
     @POST("login")
     fun postLogin()
     @POST("stories")

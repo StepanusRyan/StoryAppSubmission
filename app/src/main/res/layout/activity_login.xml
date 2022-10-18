@@ -18,10 +18,10 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <EditText
+        <com.stepanusryan.storyapp.util.RyanEditTextEmail
             android:id="@+id/ed_login_email"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:autofillHints="Name"
             android:backgroundTint="@color/white"
             android:hint="@string/hint_email"
@@ -44,10 +44,10 @@
         app:passwordToggleDrawable="@drawable/password_selector"
         app:passwordToggleEnabled="true">
 
-        <EditText
+        <com.stepanusryan.storyapp.util.RyanEditTextPassword
             android:id="@+id/ed_login_password"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:autofillHints="Password"
             android:hint="@string/password"
             android:inputType="textPassword" />

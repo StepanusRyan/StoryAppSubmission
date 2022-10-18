@@ -14,34 +14,31 @@ import com.stepanusryan.storyapp.R
 import com.stepanusryan.storyapp.api.ApiConfig
 import com.stepanusryan.storyapp.databinding.ActivityHomeBinding
 import com.stepanusryan.storyapp.model.ResponseGetStory
+import com.stepanusryan.storyapp.viewmodel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var homeBinding: ActivityHomeBinding
-    private lateinit var homeViewModel: HomeViewModel
-    private lateinit var homeAdapter: HomeAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeBinding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(homeBinding.root)
-        prepareRecyclerView()
-        homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
-        homeViewModel.getStory()
-        homeViewModel.observeStoryLiveData().observe(this, Observer { listStory ->
+        val factory = ViewModelFactory.getInstance(this)
+        val viewModel = ViewModelProvider(this,factory)[HomeViewModel::class.java]
+
+        viewModel.getStory().observe(this) { listStory ->
+            val homeAdapter = HomeAdapter()
             homeAdapter.setStory(listStory)
-        })
-
-    }
-    fun prepareRecyclerView(){
-        homeAdapter = HomeAdapter()
-        homeBinding.rvStory.apply {
-            layoutManager = LinearLayoutManager(applicationContext,LinearLayoutManager.VERTICAL,false)
-            adapter = homeAdapter
+            with(homeBinding.rvStory) {
+                layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+                setHasFixedSize(true)
+                adapter = homeAdapter
+            }
         }
-    }
 
+    }
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater = menuInflater
         inflater.inflate(R.menu.menu,menu)
