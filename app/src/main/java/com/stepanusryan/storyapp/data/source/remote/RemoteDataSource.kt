@@ -20,7 +20,7 @@ class RemoteDataSource {
         val client = ApiConfig.getApiService().getStories(token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyLURJdUlxQkNnM1VIYU8wZ24iLCJpYXQiOjE2NjQwMzI1NTB9.WRTOTqX5CHT-fP4yzE516n26Y4xd918hoBsc-yoPU04")
         client.enqueue(object : Callback<ResponseGetStory>{
             override fun onResponse(call: Call<ResponseGetStory>, response: Response<ResponseGetStory>) {
-                callback.storyReceived(response.body()!!)
+                response?.body()?.let { callback.storyReceived(it) }
             }
 
             override fun onFailure(call: Call<ResponseGetStory>, t: Throwable) {

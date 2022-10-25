@@ -7,6 +7,9 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,6 +17,8 @@ import com.stepanusryan.storyapp.R
 import com.stepanusryan.storyapp.api.ApiConfig
 import com.stepanusryan.storyapp.databinding.ActivityHomeBinding
 import com.stepanusryan.storyapp.model.ResponseGetStory
+import com.stepanusryan.storyapp.ui.addstory.AddActivity
+import com.stepanusryan.storyapp.util.Preference
 import com.stepanusryan.storyapp.viewmodel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,11 +26,12 @@ import retrofit2.Response
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var homeBinding: ActivityHomeBinding
+    private val dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_key")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeBinding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(homeBinding.root)
-        val factory = ViewModelFactory.getInstance(this)
+        val factory = ViewModelFactory(Preference.getInstance(dataStore),this)
         val viewModel = ViewModelProvider(this,factory)[HomeViewModel::class.java]
 
         viewModel.getStory().observe(this) { listStory ->
@@ -36,6 +42,10 @@ class HomeActivity : AppCompatActivity() {
                 setHasFixedSize(true)
                 adapter = homeAdapter
             }
+        }
+        homeBinding.fabAdd.setOnClickListener {
+            startActivity(Intent(this@HomeActivity,AddActivity::class.java))
+            finish()
         }
 
     }
@@ -58,5 +68,9 @@ class HomeActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+    companion object{
+        const val EXTRA_TOKEN = "extra_token"
+        const val CAMERA_X_RESULT = 200
     }
 }
