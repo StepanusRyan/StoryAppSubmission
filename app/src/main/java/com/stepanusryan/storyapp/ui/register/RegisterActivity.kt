@@ -28,8 +28,6 @@ class RegisterActivity : AppCompatActivity() {
 
         registerViewModel.loading.observe(this){
             showLoading(it)
-            val intent = Intent(this,LoginActivity::class.java)
-            startActivity(intent)
         }
 
         registerBinding.btnSignUp.setOnClickListener {
@@ -42,9 +40,11 @@ class RegisterActivity : AppCompatActivity() {
             if (registerBinding.edRegisterEmail.error == null && registerBinding.edRegisterPassword.error == null){
                 registerViewModel.postRegister(this,name,email,password)
             }
-            finish()
         }
         registerViewModel.register.observe(this){
+            val intent = Intent(this,LoginActivity::class.java)
+            startActivity(intent)
+            finish()
             Toast.makeText(this@RegisterActivity,it.toString(),Toast.LENGTH_SHORT).show()
         }
     }

@@ -24,6 +24,7 @@ class RegisterViewModel():ViewModel() {
     val register : LiveData<String> = _register
 
     fun postRegister(context: Context,name:String,email:String,password:String) {
+        _loading.value = true
         val client = ApiConfig.getApiService().postRegister(name,email,password)
         client.enqueue(object : Callback<PostResponseRegister> {
             override fun onResponse(call: Call<PostResponseRegister>, response: Response<PostResponseRegister>) {

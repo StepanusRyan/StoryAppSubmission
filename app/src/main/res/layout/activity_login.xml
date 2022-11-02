@@ -21,7 +21,7 @@
         <com.stepanusryan.storyapp.util.RyanEditTextEmail
             android:id="@+id/ed_login_email"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:autofillHints="Name"
             android:backgroundTint="@color/white"
             android:hint="@string/hint_email"
@@ -47,7 +47,7 @@
         <com.stepanusryan.storyapp.util.RyanEditTextPassword
             android:id="@+id/ed_login_password"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="56dp"
             android:autofillHints="Password"
             android:hint="@string/password"
             android:inputType="textPassword" />

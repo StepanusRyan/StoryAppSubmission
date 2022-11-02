@@ -1,9 +1,11 @@
 package com.stepanusryan.storyapp.ui.login
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
@@ -12,16 +14,17 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModelProvider
 import com.stepanusryan.storyapp.databinding.ActivityLoginBinding
 import com.stepanusryan.storyapp.model.LoginResult
+import com.stepanusryan.storyapp.model.User
 import com.stepanusryan.storyapp.ui.home.HomeActivity
 import com.stepanusryan.storyapp.ui.register.RegisterActivity
 import com.stepanusryan.storyapp.util.Preference
 import com.stepanusryan.storyapp.viewmodel.ViewModelFactory
 
+private val Context.dataStore:DataStore<Preferences> by preferencesDataStore(name = "user_key")
 class LoginActivity : AppCompatActivity() {
     private lateinit var loginBinding: ActivityLoginBinding
     private lateinit var loginViewModel: LoginViewModel
-    private lateinit var loginResult: LoginResult
-    private val dataStore:DataStore<Preferences> by preferencesDataStore(name = "user_key")
+    private lateinit var user: User
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -30,12 +33,17 @@ class LoginActivity : AppCompatActivity() {
         loginViewModel = ViewModelProvider(this, ViewModelFactory(Preference.getInstance(dataStore),
             this)
         )[LoginViewModel::class.java]
+        loginViewModel.getUsers().observe(this,{
+            this.user = it
+        })
 
         loginBinding.btnSignIn.setOnClickListener {
             when(isLogin()){
                 true ->{
                     val email = loginBinding.edLoginEmail.text.toString()
                     val password = loginBinding.edLoginPassword.text.toString()
+                    val input = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    input.hideSoftInputFromWindow(it.windowToken,0)
 
                     loginViewModel.postLogin(this,email,password)
                     loginViewModel.login
@@ -54,10 +62,10 @@ class LoginActivity : AppCompatActivity() {
             showLoading(it)
         }
         loginViewModel.getUsers().observe(this){
-            this.loginResult = it
-            if (this.loginResult.isLogin){
+            this.user = it
+            if (it.isLogin){
                 val intent = Intent(this@LoginActivity,HomeActivity::class.java)
-                intent.putExtra(HomeActivity.EXTRA_TOKEN,loginResult.token)
+                intent.putExtra(HomeActivity.EXTRA_TOKEN,user.token)
                 startActivity(intent)
                 finish()
             }

@@ -6,6 +6,7 @@ import androidx.lifecycle.*
 import com.stepanusryan.storyapp.api.ApiConfig
 import com.stepanusryan.storyapp.model.LoginResult
 import com.stepanusryan.storyapp.model.PostLoginResponse
+import com.stepanusryan.storyapp.model.User
 import com.stepanusryan.storyapp.ui.home.HomeActivity
 import com.stepanusryan.storyapp.util.Preference
 import kotlinx.coroutines.launch
@@ -29,7 +30,7 @@ class LoginViewModel(private val preference: Preference):ViewModel() {
                 if (response.isSuccessful && responseBody != null){
                     val error = responseBody.error
                     if (!error){
-                        val login = LoginResult(
+                        val login = User(
                             responseBody.loginResult.userId,
                             responseBody.loginResult.name,
                             responseBody.loginResult.token,
@@ -57,10 +58,10 @@ class LoginViewModel(private val preference: Preference):ViewModel() {
 
         })
     }
-    fun getUsers():LiveData<LoginResult>{
+    fun getUsers():LiveData<User>{
         return preference.getUser().asLiveData()
     }
-    fun saveKeyUser(key: LoginResult){
+    fun saveKeyUser(key: User){
         viewModelScope.launch {
             preference.saveUser(key)
         }

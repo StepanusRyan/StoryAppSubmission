@@ -17,10 +17,11 @@ class RemoteDataSource {
             }
     }
     fun getStories(callback: LoadStories){
-        val client = ApiConfig.getApiService().getStories(token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyLURJdUlxQkNnM1VIYU8wZ24iLCJpYXQiOjE2NjQwMzI1NTB9.WRTOTqX5CHT-fP4yzE516n26Y4xd918hoBsc-yoPU04")
+        val client = ApiConfig.getApiService().getStories(token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1c2VyLURJdUlxQkNnM1VIYU8wZ24iLCJpYXQiOjE2NjczODE2MDd9.KJAt3JfatTmZTVCM3M71paxNtKsS9LtYPaMWrEqtvGE")
         client.enqueue(object : Callback<ResponseGetStory>{
             override fun onResponse(call: Call<ResponseGetStory>, response: Response<ResponseGetStory>) {
                 response?.body()?.let { callback.storyReceived(it) }
+//                callback.storyReceived(response.body()!!)
             }
 
             override fun onFailure(call: Call<ResponseGetStory>, t: Throwable) {

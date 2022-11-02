@@ -1,8 +1,10 @@
 package com.stepanusryan.storyapp.ui.home
 
+import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
@@ -23,10 +25,9 @@ import com.stepanusryan.storyapp.viewmodel.ViewModelFactory
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
+private val Context.dataStore:DataStore<Preferences> by preferencesDataStore(name = "user_key")
 class HomeActivity : AppCompatActivity() {
     private lateinit var homeBinding: ActivityHomeBinding
-    private val dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_key")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         homeBinding = ActivityHomeBinding.inflate(layoutInflater)

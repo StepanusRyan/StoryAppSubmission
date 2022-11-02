@@ -6,13 +6,14 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.stepanusryan.storyapp.model.LoginResult
+import com.stepanusryan.storyapp.model.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class Preference private constructor(private val datastore:DataStore<Preferences>) {
-    fun getUser(): Flow<LoginResult>{
+    fun getUser(): Flow<User>{
         return datastore.data.map {
-            LoginResult(
+            User(
                 it[USER_KEY] ?:"",
                 it[NAME_KEY] ?:"",
                 it[TOKEN_KEY] ?:"",
@@ -20,7 +21,7 @@ class Preference private constructor(private val datastore:DataStore<Preferences
             )
         }
     }
-    suspend fun saveUser(loginResult: LoginResult){
+    suspend fun saveUser(loginResult: User){
         datastore.edit {
             it[USER_KEY] = loginResult.userId
             it[NAME_KEY] = loginResult.name
