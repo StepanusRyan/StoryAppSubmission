@@ -13,3 +13,10 @@
 .externalNativeBuild
 .cxx
 local.properties
+.kotlin
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/appInsightsSettings.xml
+/.idea/other.xml
+/.idea/copilot*.xml
+/.idea/studiobot.xml

@@ -1,40 +1,33 @@
 package com.stepanusryan.storyapp.util
 
 import android.content.Context
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.AttributeSet
-import androidx.appcompat.widget.AppCompatEditText
+import androidx.core.widget.doOnTextChanged
+import com.google.android.material.textfield.TextInputEditText
+import com.stepanusryan.storyapp.R
 
-class RyanEditTextPassword : AppCompatEditText {
-    constructor(context: Context):super(context){
-        init()
-    }
-    constructor(context: Context, attributeSet: AttributeSet):super(context,attributeSet){
-        init()
-    }
+class RyanEditTextPassword : TextInputEditText {
 
-    constructor(context: Context, attributeSet: AttributeSet, defAttr:Int):super(context,attributeSet,defAttr){
-        init()
-    }
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
+        super(context, attrs, defStyleAttr)
 
-    private fun init() {
-        addTextChangedListener(object : TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                //
+    val isValid: Boolean
+        get() = (text?.length ?: 0) >= MIN_LENGTH
+
+    init {
+        doOnTextChanged { text, _, _, _ ->
+            val message = if (!text.isNullOrEmpty() && text.length < MIN_LENGTH) {
+                context.getString(R.string.error_password_min_length)
+            } else {
+                null
             }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (p0?.length!! < 6){
-                    error = "Password harus 6 karakter"
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-                //s
-            }
-
-        })
+            setError(message, null)
+        }
     }
 
+    private companion object {
+        const val MIN_LENGTH = 8
+    }
 }

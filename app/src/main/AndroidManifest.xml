@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.stepanusryan.storyapp">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -15,24 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.StoryApp"
         tools:targetApi="31">
+
         <activity
-            android:name=".ui.addstory.AddActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
-            android:name=".ui.home.detail.DetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.home.HomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.register.RegisterActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.login.LoginActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.App.Starting">
             <intent-filter>
@@ -41,6 +25,42 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.register.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.home.HomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.detail.DetailActivity"
+            android:exported="false"
+            android:label="@string/title_detail_story" />
+        <activity
+            android:name=".ui.addstory.AddStoryActivity"
+            android:exported="false"
+            android:label="@string/title_add_story" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
+        </service>
     </application>
 
 </manifest>

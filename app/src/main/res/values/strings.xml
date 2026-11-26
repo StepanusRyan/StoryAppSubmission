@@ -1,9 +1,49 @@
 <resources>
-    <string name="app_name">Story App</string>
+    <string name="app_name" translatable="false">Story App</string>
+    <string name="title_detail_story">Story Detail</string>
+    <string name="title_add_story">Add Story</string>
+
+    <string name="login_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to see and share stories</string>
+    <string name="register_title">Create an account</string>
+    <string name="register_subtitle">Join us and start sharing your stories</string>
+    <string name="hint_name">Name</string>
     <string name="hint_email">Email</string>
-    <string name="password">Password</string>
+    <string name="hint_password">Password</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
-    <string name="hint_name">Name</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="have_account">Already have an account?</string>
+    <string name="login_success">Welcome, %1$s!</string>
+    <string name="register_success">Account created. Please sign in.</string>
+
+    <string name="error_email_invalid">Invalid email format</string>
+    <string name="error_password_min_length">Password must be at least 8 characters</string>
+    <string name="error_name_empty">Name is required</string>
+    <string name="error_form_invalid">Please fill in all fields correctly</string>
+    <string name="error_generic">Something went wrong. Check your internet connection and try again.</string>
+
     <string name="add_story">Add Story</string>
+    <string name="empty_story">No stories yet. Be the first to share one!</string>
+    <string name="retry">Try Again</string>
+    <string name="action_logout">Logout</string>
+    <string name="dialog_logout">Logout of StoryApp ?</string>
+    <string name="action_language">Change Language</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_indonesian" translatable="false">Bahasa Indonesia</string>
+
+    <string name="gallery">Gallery</string>
+    <string name="camera">Camera</string>
+    <string name="upload">Upload</string>
+    <string name="hint_description">Write your story</string>
+    <string name="error_image_empty">Please choose a photo first</string>
+    <string name="error_description_empty">Description cannot be empty</string>
+    <string name="error_no_camera">No camera app available</string>
+    <string name="upload_success">Story uploaded successfully</string>
+
+    <string name="content_description_story_photo">Story photo</string>
+    <string name="content_description_preview">Selected photo preview</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="cancel">Cancel</string>
 </resources>

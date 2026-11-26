@@ -1,39 +1,32 @@
 package com.stepanusryan.storyapp.util
 
 import android.content.Context
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.AttributeSet
-import android.widget.EditText
-import androidx.appcompat.widget.AppCompatEditText
+import android.util.Patterns
+import androidx.core.widget.doOnTextChanged
+import com.google.android.material.textfield.TextInputEditText
+import com.stepanusryan.storyapp.R
 
-class RyanEditTextEmail : AppCompatEditText {
-    constructor(context:Context):super(context){
-        init()
-    }
-    constructor(context: Context, attributeSet: AttributeSet):super(context,attributeSet){
-        init()
-    }
+class RyanEditTextEmail : TextInputEditText {
 
-    constructor(context: Context,attributeSet: AttributeSet,defAttr:Int):super(context,attributeSet,defAttr){
-        init()
-    }
-    private fun init() {
-        addTextChangedListener(object :TextWatcher{
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                //
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
+        super(context, attrs, defStyleAttr)
+
+    val isValid: Boolean
+        get() = isEmailFormat(text)
+
+    init {
+        doOnTextChanged { text, _, _, _ ->
+            error = if (!text.isNullOrEmpty() && !isEmailFormat(text)) {
+                context.getString(R.string.error_email_invalid)
+            } else {
+                null
             }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (!p0?.contains("@")!!){
-                    error = "Email not valid"
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-            }
-
-        })
+        }
     }
 
+    private fun isEmailFormat(text: CharSequence?): Boolean =
+        !text.isNullOrBlank() && Patterns.EMAIL_ADDRESS.matcher(text.trim()).matches()
 }

@@ -1,77 +1,162 @@
 package com.stepanusryan.storyapp.ui.home
 
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.Toast
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
+import androidx.activity.SystemBarStyle
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.stepanusryan.storyapp.R
-import com.stepanusryan.storyapp.api.ApiConfig
+import com.stepanusryan.storyapp.data.ResultState
 import com.stepanusryan.storyapp.databinding.ActivityHomeBinding
-import com.stepanusryan.storyapp.model.ResponseGetStory
-import com.stepanusryan.storyapp.ui.addstory.AddActivity
-import com.stepanusryan.storyapp.util.Preference
+import com.stepanusryan.storyapp.model.Story
+import com.stepanusryan.storyapp.ui.addstory.AddStoryActivity
+import com.stepanusryan.storyapp.ui.detail.DetailActivity
+import com.stepanusryan.storyapp.ui.login.LoginActivity
+import com.stepanusryan.storyapp.util.applySystemBarsPadding
+import com.stepanusryan.storyapp.util.currentLocale
+import com.stepanusryan.storyapp.util.showToast
 import com.stepanusryan.storyapp.viewmodel.ViewModelFactory
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-private val Context.dataStore:DataStore<Preferences> by preferencesDataStore(name = "user_key")
+
 class HomeActivity : AppCompatActivity() {
-    private lateinit var homeBinding: ActivityHomeBinding
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        homeBinding = ActivityHomeBinding.inflate(layoutInflater)
-        setContentView(homeBinding.root)
-        val factory = ViewModelFactory(Preference.getInstance(dataStore),this)
-        val viewModel = ViewModelProvider(this,factory)[HomeViewModel::class.java]
 
-        viewModel.getStory().observe(this) { listStory ->
-            val homeAdapter = HomeAdapter()
-            homeAdapter.setStory(listStory)
-            with(homeBinding.rvStory) {
-                layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-                setHasFixedSize(true)
-                adapter = homeAdapter
-            }
-        }
-        homeBinding.fabAdd.setOnClickListener {
-            startActivity(Intent(this@HomeActivity,AddActivity::class.java))
-            finish()
-        }
+    private lateinit var binding: ActivityHomeBinding
+    private val viewModel by viewModels<HomeViewModel> { ViewModelFactory.getInstance(this) }
+    private val storyAdapter = StoryAdapter { story -> openDetail(story) }
+    private var scrollToTopAfterLoad = false
 
+    private val addStoryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            scrollToTopAfterLoad = true
+            viewModel.loadStories()
+        }
     }
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.menu,menu)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
+        super.onCreate(savedInstanceState)
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        binding.root.applySystemBarsPadding(applyTop = false)
+
+        binding.rvStory.layoutManager = LinearLayoutManager(this)
+        binding.rvStory.adapter = storyAdapter
+        binding.swipeRefresh.setOnRefreshListener { viewModel.loadStories() }
+        binding.btnRetry.setOnClickListener { viewModel.loadStories() }
+        binding.fabAdd.setOnClickListener {
+            addStoryLauncher.launch(Intent(this, AddStoryActivity::class.java))
+        }
+
+        viewModel.session.observe(this) { user ->
+            if (!user.isLogin) navigateToLogin()
+        }
+        viewModel.stories.observe(this) { result -> renderStories(result) }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_home, menu)
         return true
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId){
-            R.id.changeLanguage -> {
-                //startActivity(Intent())
-                Toast.makeText(this@HomeActivity,"Language",Toast.LENGTH_SHORT).show()
-                return true
+    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
+        R.id.action_language -> {
+            showLanguageDialog()
+            true
+        }
+        R.id.action_logout -> {
+            showLogoutDialog()
+            true
+        }
+        else -> super.onOptionsItemSelected(item)
+    }
+
+    private fun renderStories(result: ResultState<List<Story>>) {
+        binding.swipeRefresh.isRefreshing = result is ResultState.Loading
+        when (result) {
+            ResultState.Loading -> showState(message = null)
+            is ResultState.Success -> {
+                storyAdapter.submitList(result.data) {
+                    if (scrollToTopAfterLoad) {
+                        binding.rvStory.scrollToPosition(0)
+                        scrollToTopAfterLoad = false
+                    }
+                }
+                showState(message = if (result.data.isEmpty()) getString(R.string.empty_story) else null)
             }
-            R.id.logout -> {
-                Toast.makeText(this@HomeActivity,"Logout",Toast.LENGTH_SHORT).show()
-                return true
+            is ResultState.Error -> {
+                val message = result.message ?: getString(R.string.error_generic)
+                if (storyAdapter.itemCount == 0) {
+                    showState(message, showRetry = true)
+                } else {
+                    showToast(message)
+                }
             }
-            else -> super.onOptionsItemSelected(item)
         }
     }
-    companion object{
-        const val EXTRA_TOKEN = "extra_token"
-        const val CAMERA_X_RESULT = 200
+
+    private fun showState(message: String?, showRetry: Boolean = false) {
+        binding.layoutState.isVisible = message != null
+        binding.tvStateMessage.text = message
+        binding.btnRetry.isVisible = showRetry
+    }
+
+    private fun openDetail(story: Story) {
+        val intent = Intent(this, DetailActivity::class.java).apply {
+            putExtra(DetailActivity.EXTRA_STORY_ID, story.id)
+        }
+        startActivity(intent)
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
+    }
+
+    private fun showLanguageDialog() {
+        val languageTags = arrayOf("en", "in")
+        val languageNames = arrayOf(
+            getString(R.string.language_english),
+            getString(R.string.language_indonesian)
+        )
+        val currentLanguage = currentLocale.language
+        val checkedItem = if (currentLanguage == "in" || currentLanguage == "id") 1 else 0
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.action_language)
+            .setSingleChoiceItems(languageNames, checkedItem) { dialog, which ->
+                dialog.dismiss()
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.forLanguageTags(languageTags[which])
+                )
+            }
+            .show()
+    }
+    private fun showLogoutDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.action_logout)
+            .setMessage(R.string.dialog_logout)
+            .setPositiveButton(R.string.yes){dialog,_->
+                dialog.dismiss()
+                viewModel.logout()
+            }
+            .setNegativeButton(R.string.cancel){dialog,_->
+                dialog.dismiss()
+            }
+            .setCancelable(true)
+            .show()
     }
 }

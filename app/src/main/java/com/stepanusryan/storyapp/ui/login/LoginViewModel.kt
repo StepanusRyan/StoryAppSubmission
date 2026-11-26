@@ -1,69 +1,24 @@
 package com.stepanusryan.storyapp.ui.login
 
-import android.content.Context
-import android.content.Intent
-import androidx.lifecycle.*
-import com.stepanusryan.storyapp.api.ApiConfig
-import com.stepanusryan.storyapp.model.LoginResult
-import com.stepanusryan.storyapp.model.PostLoginResponse
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.stepanusryan.storyapp.data.ResultState
+import com.stepanusryan.storyapp.data.StoryRepository
+import com.stepanusryan.storyapp.data.resultOf
 import com.stepanusryan.storyapp.model.User
-import com.stepanusryan.storyapp.ui.home.HomeActivity
-import com.stepanusryan.storyapp.util.Preference
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
-class LoginViewModel(private val preference: Preference):ViewModel() {
-    private val _loading = MutableLiveData<Boolean>()
-    val loading : LiveData<Boolean> = _loading
+class LoginViewModel(private val repository: StoryRepository) : ViewModel() {
 
-    private val _login = MutableLiveData<String>()
-    val login : LiveData<String> = _login
+    private val _loginResult = MutableLiveData<ResultState<User>>()
+    val loginResult: LiveData<ResultState<User>> = _loginResult
 
-    fun postLogin(context: Context, email:String,password:String) {
-        _loading.value = true
-        val client = ApiConfig.getApiService().postLogin(email,password)
-        client.enqueue(object : Callback<PostLoginResponse>{
-            override fun onResponse(call: Call<PostLoginResponse>,response: Response<PostLoginResponse>) {
-                val responseBody = response.body()
-                if (response.isSuccessful && responseBody != null){
-                    val error = responseBody.error
-                    if (!error){
-                        val login = User(
-                            responseBody.loginResult.userId,
-                            responseBody.loginResult.name,
-                            responseBody.loginResult.token,
-                            true
-                        )
-                        saveKeyUser(login)
-                        _loading.value = false
-                        _login.value = responseBody.message
-                    }
-                    else{
-                        _loading.value = false
-                        _login.value = responseBody.message
-                    }
-                }
-                else{
-                    _loading.value = false
-                    _login.value = "Email atau Password Salah!"
-                }
-            }
-
-            override fun onFailure(call: Call<PostLoginResponse>, t: Throwable) {
-                _loading.value = false
-                _login.value = t.message
-            }
-
-        })
-    }
-    fun getUsers():LiveData<User>{
-        return preference.getUser().asLiveData()
-    }
-    fun saveKeyUser(key: User){
+    fun login(email: String, password: String) {
+        _loginResult.value = ResultState.Loading
         viewModelScope.launch {
-            preference.saveUser(key)
+            _loginResult.value = resultOf { repository.login(email, password) }
         }
     }
 }

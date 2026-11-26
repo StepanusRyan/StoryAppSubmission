@@ -1,92 +1,110 @@
 package com.stepanusryan.storyapp.ui.login
 
-import android.content.Context
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.ViewModelProvider
+import android.view.animation.OvershootInterpolator
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
+import com.stepanusryan.storyapp.R
+import com.stepanusryan.storyapp.data.ResultState
 import com.stepanusryan.storyapp.databinding.ActivityLoginBinding
-import com.stepanusryan.storyapp.model.LoginResult
 import com.stepanusryan.storyapp.model.User
 import com.stepanusryan.storyapp.ui.home.HomeActivity
 import com.stepanusryan.storyapp.ui.register.RegisterActivity
-import com.stepanusryan.storyapp.util.Preference
+import com.stepanusryan.storyapp.util.applySystemBarsPadding
+import com.stepanusryan.storyapp.util.hideKeyboard
+import com.stepanusryan.storyapp.util.showToast
 import com.stepanusryan.storyapp.viewmodel.ViewModelFactory
 
-private val Context.dataStore:DataStore<Preferences> by preferencesDataStore(name = "user_key")
 class LoginActivity : AppCompatActivity() {
-    private lateinit var loginBinding: ActivityLoginBinding
-    private lateinit var loginViewModel: LoginViewModel
-    private lateinit var user: User
+
+    private lateinit var binding: ActivityLoginBinding
+    private val viewModel by viewModels<LoginViewModel> { ViewModelFactory.getInstance(this) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        loginBinding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(loginBinding.root)
-        loginViewModel = ViewModelProvider(this, ViewModelFactory(Preference.getInstance(dataStore),
-            this)
-        )[LoginViewModel::class.java]
-        loginViewModel.getUsers().observe(this,{
-            this.user = it
-        })
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.root.applySystemBarsPadding()
 
-        loginBinding.btnSignIn.setOnClickListener {
-            when(isLogin()){
-                true ->{
-                    val email = loginBinding.edLoginEmail.text.toString()
-                    val password = loginBinding.edLoginPassword.text.toString()
-                    val input = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    input.hideSoftInputFromWindow(it.windowToken,0)
+        binding.btnLogin.setOnClickListener { login() }
+        binding.tvRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
+        viewModel.loginResult.observe(this) { result -> handleLoginResult(result) }
 
-                    loginViewModel.postLogin(this,email,password)
-                    loginViewModel.login
+        playAnimation()
+    }
+
+    private fun login() {
+        if (!binding.edLoginEmail.isValid || !binding.edLoginPassword.isValid) {
+            showToast(getString(R.string.error_form_invalid))
+            return
+        }
+        hideKeyboard()
+        viewModel.login(
+            email = binding.edLoginEmail.text?.toString()?.trim() ?: "",
+            password = binding.edLoginPassword.text?.toString() ?: ""
+        )
+    }
+
+    private fun handleLoginResult(result: ResultState<User>) {
+        showLoading(result is ResultState.Loading)
+        when (result) {
+            is ResultState.Success -> {
+                showToast(getString(R.string.login_success, result.data.name))
+                val intent = Intent(this, HomeActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
-                else->{
-                    Toast.makeText(this@LoginActivity,"Email atau Password salah",Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-        loginViewModel.login.observe(this){
-            startActivity(Intent(this@LoginActivity,HomeActivity::class.java))
-            finish()
-            Toast.makeText(this@LoginActivity,it,Toast.LENGTH_SHORT).show()
-        }
-        loginViewModel.loading.observe(this){
-            showLoading(it)
-        }
-        loginViewModel.getUsers().observe(this){
-            this.user = it
-            if (it.isLogin){
-                val intent = Intent(this@LoginActivity,HomeActivity::class.java)
-                intent.putExtra(HomeActivity.EXTRA_TOKEN,user.token)
                 startActivity(intent)
                 finish()
             }
-        }
-
-        loginBinding.txtSignUp.setOnClickListener {
-            startActivity(Intent(this@LoginActivity, RegisterActivity::class.java))
+            is ResultState.Error -> showToast(result.message ?: getString(R.string.error_generic))
+            ResultState.Loading -> Unit
         }
     }
-    private fun isLogin() =
-                loginBinding.edLoginEmail.error == null &&
-                loginBinding.edLoginPassword.error == null &&
-                !loginBinding.edLoginEmail.text.isNullOrEmpty() &&
-                !loginBinding.edLoginPassword.text.isNullOrEmpty()
 
-    private fun showLoading(status:Boolean){
-        if (status){
-            loginBinding.progressBar.visibility = View.VISIBLE
+    private fun showLoading(isLoading: Boolean) {
+        binding.progressBar.isVisible = isLoading
+        binding.btnLogin.isEnabled = !isLoading
+    }
+
+    private fun playAnimation() {
+        val distance = resources.getDimension(R.dimen.animation_distance)
+        val logo = ObjectAnimator.ofPropertyValuesHolder(
+            binding.ivLogo,
+            PropertyValuesHolder.ofFloat(View.ALPHA, 0f, 1f),
+            PropertyValuesHolder.ofFloat(View.SCALE_X, 0.5f, 1f),
+            PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.5f, 1f)
+        ).apply {
+            duration = 500
+            interpolator = OvershootInterpolator()
         }
-        else{
-            loginBinding.progressBar.visibility = View.INVISIBLE
+
+        val entrance = listOf(
+            binding.tvTitle,
+            binding.tvSubtitle,
+            binding.tilEmail,
+            binding.tilPassword,
+            binding.btnLogin,
+            binding.layoutRegister
+        ).map { view ->
+            ObjectAnimator.ofPropertyValuesHolder(
+                view,
+                PropertyValuesHolder.ofFloat(View.ALPHA, 0f, 1f),
+                PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, distance, 0f)
+            ).setDuration(250)
+        }
+        AnimatorSet().apply {
+            playSequentially(listOf(logo) + entrance)
+            start()
         }
     }
 }
